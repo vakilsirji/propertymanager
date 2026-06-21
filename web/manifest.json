@@ -1,11 +1,11 @@
 {
-    "name": "property_manager",
-    "short_name": "property_manager",
+    "name": "Vakil Sirji Property Manager",
+    "short_name": "Vakil Sirji",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Vakil Sirji Property Manager Admin Panel",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
