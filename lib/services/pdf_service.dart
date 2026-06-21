@@ -10,7 +10,7 @@ class PdfService {
     return input.replaceAll(RegExp(r'[^\x20-\x7E]'), '').trim();
   }
 
-  static Future<Uint8List> generateDraftPdf(Agreement agreement) async {
+  static Future<Uint8List> generateDraftPdf(Agreement agreement, {bool isFinal = false}) async {
     final pdf = pw.Document();
     final details = agreement.details;
     if (details == null) return Uint8List(0);
@@ -22,7 +22,7 @@ class PdfService {
           return [
             pw.Center(
               child: pw.Text(
-                'DRAFT RENTAL AGREEMENT',
+                isFinal ? 'RENTAL AGREEMENT' : 'DRAFT RENTAL AGREEMENT',
                 style: pw.TextStyle(
                   fontSize: 24,
                   fontWeight: pw.FontWeight.bold,
@@ -172,13 +172,15 @@ class PdfService {
                 ],
               ],
             ),
-            pw.SizedBox(height: 40),
-            pw.Center(
-              child: pw.Text(
-                '--- THIS IS A DRAFT FOR REVIEW ONLY ---',
-                style: pw.TextStyle(fontSize: 12, color: PdfColors.red),
+            if (!isFinal) ...[
+              pw.SizedBox(height: 40),
+              pw.Center(
+                child: pw.Text(
+                  '--- THIS IS A DRAFT FOR REVIEW ONLY ---',
+                  style: pw.TextStyle(fontSize: 12, color: PdfColors.red),
+                ),
               ),
-            ),
+            ],
           ];
         },
       ),

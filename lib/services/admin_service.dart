@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/admin_models.dart';
 import '../models/models.dart';
+import 'pdf_service.dart';
 
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
@@ -245,6 +246,30 @@ class AdminService {
   /// Update agreement status
   Future<void> updateAgreementStatus(String agreementId, String newStatus) async {
     await _client.from('agreements').update({'status': newStatus}).eq('id', agreementId);
+  }
+
+  /// Mark Agreement as Final (generates official PDF, uploads, and updates status)
+  Future<void> markAgreementAsFinal(Agreement agreement) async {
+    // 1. Generate the final PDF (without watermark)
+    final pdfBytes = await PdfService.generateDraftPdf(agreement, isFinal: true);
+    
+    // 2. Upload the official PDF (overwriting draft or creating new)
+    final fileName = 'final_${agreement.agreementNumber}.pdf';
+    final path = 'agreements/$fileName'; // Ensure it goes to a valid bucket path
+    
+    await _client.storage.from('agreements').uploadBinary(
+      path, 
+      pdfBytes,
+      fileOptions: const FileOptions(upsert: true, contentType: 'application/pdf'),
+    );
+    
+    final url = _client.storage.from('agreements').getPublicUrl(path);
+    
+    // 3. Update the agreement record in the database
+    await _client.from('agreements').update({
+      'status': 'active',
+      'pdf_url': url,
+    }).eq('id', agreement.id);
   }
 
   /// File IGR (Update status to IGR Filed or similar)

@@ -78,6 +78,39 @@ Vakil Sirji Team
     }
   }
 
+  Future<void> _markAsFinal() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Mark as Final?'),
+        content: const Text('This will generate the official PDF without watermarks and lock the agreement from future edits. Are you sure?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Mark Final', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _isGeneratingPdf = true);
+    try {
+      await ref.read(adminServiceProvider).markAgreementAsFinal(widget.agreement);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Agreement marked as final and locked.')));
+        Navigator.pop(context, true); // Go back and indicate refresh needed
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    } finally {
+      if (mounted) setState(() => _isGeneratingPdf = false);
+    }
+  }
+
   Widget _buildCopyRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -215,6 +248,20 @@ Vakil Sirji Team
                         ),
                       ],
                     ),
+                const SizedBox(height: 16),
+                if (!_isGeneratingPdf)
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _markAsFinal,
+                      icon: const Icon(Icons.verified, color: Colors.white),
+                      label: const Text('Mark as Final / Government Submission', style: TextStyle(color: Colors.white, fontSize: 16)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                    ),
+                  ),
                 const SizedBox(height: 32),
               ],
             ),
