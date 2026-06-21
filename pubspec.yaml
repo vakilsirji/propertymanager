@@ -46,6 +46,7 @@ dependencies:
   share_plus: ^7.2.2
   printing: ^5.11.1
   flutter_riverpod: ^2.6.1
+  file_picker: ^11.0.2
 
 dev_dependencies:
   flutter_test:

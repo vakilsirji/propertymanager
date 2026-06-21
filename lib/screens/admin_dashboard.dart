@@ -62,15 +62,13 @@ class AdminDashboard extends StatelessWidget {
       {'title': 'Dashboard', 'icon': Icons.dashboard, 'route': '/admin/dashboard'},
       {'title': 'Leads', 'icon': Icons.leaderboard, 'route': '/admin/leads'},
       {'title': 'Customers', 'icon': Icons.people, 'route': '/admin/customers'},
-      {'title': 'Properties', 'icon': Icons.apartment, 'route': '/admin/properties'},
-      {'title': 'Tenants', 'icon': Icons.person, 'route': '/admin/tenants'},
-      {'title': 'Agreements', 'icon': Icons.description, 'route': '/admin/agreements'},
-      {'title': 'Renewals', 'icon': Icons.refresh, 'route': '/admin/renewal'},
+      {'title': 'Draft Agreements', 'icon': Icons.description, 'route': '/admin/draft'},
       {'title': 'Biometric Visits', 'icon': Icons.fingerprint, 'route': '/admin/biometric'},
       {'title': 'Payments', 'icon': Icons.payment, 'route': '/admin/payments'},
+      {'title': 'Registration/IGR', 'icon': Icons.account_balance, 'route': '/admin/igr'},
       {'title': 'Vendors', 'icon': Icons.business_center, 'route': '/admin/vendor-assign'},
+      {'title': 'Renewals', 'icon': Icons.refresh, 'route': '/admin/renewal'},
       {'title': 'Reports', 'icon': Icons.bar_chart, 'route': '/admin/reports'},
-      {'title': 'Settings', 'icon': Icons.settings, 'route': '/admin/settings'},
     ];
     return Drawer(
       child: ListView(

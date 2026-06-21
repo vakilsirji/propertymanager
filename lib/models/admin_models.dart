@@ -2,31 +2,52 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Lead {
   final String id;
-  final String customerName;
-  final String mobile;
+  final String clientName;
+  final String phone;
   final String propertyAddress;
-  final String serviceRequired;
+  final String status;
   final DateTime createdAt;
-  final String status; // New Lead, In Progress, etc.
 
   Lead({
     required this.id,
-    required this.customerName,
-    required this.mobile,
+    required this.clientName,
+    required this.phone,
     required this.propertyAddress,
-    required this.serviceRequired,
-    required this.createdAt,
     required this.status,
+    required this.createdAt,
   });
 
   factory Lead.fromMap(Map<String, dynamic> map) => Lead(
         id: map['id'].toString(),
-        customerName: map['customer_name'] as String,
-        mobile: map['mobile'] as String,
+        clientName: map['client_name'] as String,
+        phone: map['phone'] as String,
         propertyAddress: map['property_address'] as String,
-        serviceRequired: map['service_required'] as String,
-        createdAt: DateTime.parse(map['created_at'] as String),
         status: map['status'] as String,
+        createdAt: DateTime.parse(map['created_at'] as String),
+      );
+}
+
+class LeadDocument {
+  final String id;
+  final String leadId;
+  final String documentType;
+  final String fileUrl;
+  final DateTime createdAt;
+
+  LeadDocument({
+    required this.id,
+    required this.leadId,
+    required this.documentType,
+    required this.fileUrl,
+    required this.createdAt,
+  });
+
+  factory LeadDocument.fromMap(Map<String, dynamic> map) => LeadDocument(
+        id: map['id'].toString(),
+        leadId: map['lead_id'].toString(),
+        documentType: map['document_type'] as String,
+        fileUrl: map['file_url'] as String,
+        createdAt: DateTime.parse(map['created_at'] as String),
       );
 }
 
@@ -36,6 +57,7 @@ class AgreementPerson {
   final String pincode;
   final String pan;
   final String aadhaar;
+  final String age;
 
   AgreementPerson({
     required this.name,
@@ -43,6 +65,7 @@ class AgreementPerson {
     required this.pincode,
     required this.pan,
     required this.aadhaar,
+    required this.age,
   });
 
   factory AgreementPerson.fromMap(Map<String, dynamic> map) => AgreementPerson(
@@ -51,6 +74,7 @@ class AgreementPerson {
         pincode: map['pincode'] ?? '',
         pan: map['pan'] ?? '',
         aadhaar: map['aadhaar'] ?? '',
+        age: map['age'] ?? '',
       );
 
   Map<String, dynamic> toMap() => {
@@ -59,6 +83,7 @@ class AgreementPerson {
         'pincode': pincode,
         'pan': pan,
         'aadhaar': aadhaar,
+        'age': age,
       };
 }
 
@@ -96,6 +121,9 @@ class AgreementDetails {
   final AgreementWitness witness1;
   final AgreementWitness witness2;
   final int periodMonths;
+  final String monthlyRent;
+  final String depositAmount;
+  final String propertyAddress;
 
   AgreementDetails({
     required this.owner,
@@ -103,6 +131,9 @@ class AgreementDetails {
     required this.witness1,
     required this.witness2,
     required this.periodMonths,
+    required this.monthlyRent,
+    required this.depositAmount,
+    this.propertyAddress = '',
   });
 
   factory AgreementDetails.fromMap(Map<String, dynamic> map) => AgreementDetails(
@@ -111,6 +142,9 @@ class AgreementDetails {
         witness1: AgreementWitness.fromMap(map['witness1'] ?? {}),
         witness2: AgreementWitness.fromMap(map['witness2'] ?? {}),
         periodMonths: map['periodMonths'] ?? 11,
+        monthlyRent: map['monthlyRent']?.toString() ?? '',
+        depositAmount: map['depositAmount']?.toString() ?? '',
+        propertyAddress: map['propertyAddress']?.toString() ?? '',
       );
 
   Map<String, dynamic> toMap() => {
@@ -119,6 +153,9 @@ class AgreementDetails {
         'witness1': witness1.toMap(),
         'witness2': witness2.toMap(),
         'periodMonths': periodMonths,
+        'monthlyRent': monthlyRent,
+        'depositAmount': depositAmount,
+        'propertyAddress': propertyAddress,
       };
 }
 
@@ -132,6 +169,7 @@ class Agreement {
   final String? pdfUrl;
   final String status;
   final AgreementDetails? details;
+  final String propertyAddress;
 
   Agreement({
     required this.id,
@@ -143,6 +181,7 @@ class Agreement {
     this.pdfUrl,
     required this.status,
     this.details,
+    this.propertyAddress = '',
   });
 
   factory Agreement.fromMap(Map<String, dynamic> map) => Agreement(
@@ -155,6 +194,7 @@ class Agreement {
         pdfUrl: map['pdf_url'] as String?,
         status: map['status'] as String,
         details: map['details'] != null ? AgreementDetails.fromMap(map['details'] as Map<String, dynamic>) : null,
+        propertyAddress: map['properties'] != null ? (map['properties']['address'] as String? ?? '') : '',
       );
 }
 

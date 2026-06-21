@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/admin_service.dart';
+import 'admin_lead_details_screen.dart';
 
 class AdminLeadsScreen extends ConsumerWidget {
   const AdminLeadsScreen({Key? key}) : super(key: key);
@@ -26,17 +27,12 @@ class AdminLeadsScreen extends ConsumerWidget {
             itemBuilder: (context, index) {
               final lead = leads[index];
               return ListTile(
-                title: Text(lead.customerName),
-                subtitle: Text('${lead.serviceRequired}\n${lead.mobile}'),
-                trailing: PopupMenuButton<String>(
-                  onSelected: (value) async {
-                    await adminService.updateLeadStatus(lead.id, value);
-                  },
-                  itemBuilder: (ctx) => [
-                    const PopupMenuItem(value: 'In Progress', child: Text('Mark In Progress')),
-                    const PopupMenuItem(value: 'Converted', child: Text('Convert to Agreement')),
-                  ],
-                ),
+                title: Text(lead.clientName),
+                subtitle: Text('${lead.propertyAddress}\n${lead.phone}'),
+                trailing: Text(lead.status, style: TextStyle(color: lead.status == 'New' ? Colors.orange : Colors.green)),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => AdminLeadDetailsScreen(lead: lead)));
+                },
               );
             },
           );

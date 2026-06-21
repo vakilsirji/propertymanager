@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/admin_models.dart';
@@ -69,12 +70,43 @@ class AdminService {
 
   AdminService(this._client);
 
-  /// Fetch leads created today (simple implementation – returns all leads).
-  Future<List<Lead>> fetchTodayLeads() async {
-    final data = await _client.from('leads').select();
+  /// Create a new Lead
+  Future<void> createLead(String clientName, String phone, String address) async {
+    await _client.from('leads').insert({
+      'client_name': clientName,
+      'phone': phone,
+      'property_address': address,
+      'status': 'New',
+    });
+  }
+
+  /// Fetch leads
+  Future<List<Lead>> fetchLeads() async {
+    final data = await _client.from('leads').select().order('created_at', ascending: false);
     return (data as List<dynamic>)
         .map((e) => Lead.fromMap(e as Map<String, dynamic>))
         .toList();
+  }
+
+  /// Fetch Lead Documents
+  Future<List<LeadDocument>> fetchLeadDocuments(String leadId) async {
+    final data = await _client.from('lead_documents').select().eq('lead_id', leadId).order('created_at', ascending: true);
+    return (data as List<dynamic>).map((e) => LeadDocument.fromMap(e as Map<String, dynamic>)).toList();
+  }
+
+  /// Upload Lead Document (Web compatible bytes)
+  Future<void> uploadLeadDocument(String leadId, String docType, String fileName, List<int> bytes) async {
+    final path = 'lead_$leadId/$fileName';
+    // Import dart:typed_data for Uint8List if necessary, or just use list
+    await _client.storage.from('lead_documents').uploadBinary(path, Uint8List.fromList(bytes));
+    
+    final fileUrl = _client.storage.from('lead_documents').getPublicUrl(path);
+
+    await _client.from('lead_documents').insert({
+      'lead_id': leadId,
+      'document_type': docType,
+      'file_url': fileUrl,
+    });
   }
 
   /// Update the status of a lead.
@@ -84,7 +116,7 @@ class AdminService {
 
   /// Fetch all agreements.
   Future<List<Agreement>> fetchAllAgreements() async {
-    final data = await _client.from('agreements').select();
+    final data = await _client.from('agreements').select('*, properties(address)');
     return (data as List<dynamic>)
         .map((e) => Agreement.fromMap(e as Map<String, dynamic>))
         .toList();
@@ -92,7 +124,7 @@ class AdminService {
 
   /// Fetch agreements that are in Draft status.
   Future<List<Agreement>> fetchDraftAgreements() async {
-    final data = await _client.from('agreements').select().eq('status', 'Draft');
+    final data = await _client.from('agreements').select('*, properties(address)').eq('status', 'Draft');
     return (data as List<dynamic>)
         .map((e) => Agreement.fromMap(e as Map<String, dynamic>))
         .toList();
@@ -104,6 +136,74 @@ class AdminService {
     return (data as List<dynamic>)
         .map((e) => Property.fromMap(e as Map<String, dynamic>))
         .toList();
+  }
+
+  /// Create a new Property inline
+  Future<String> createProperty(String address, String ownerName) async {
+    final res = await _client.from('properties').insert({
+      'address': address,
+      'owner_name': ownerName,
+      'status': 'available',
+    }).select('id').single();
+    return res['id'].toString();
+  }
+
+  /// Create a new Tenant profile inline
+  Future<String> createTenantProfile(String name, String mobile) async {
+    final res = await _client.from('users').insert({
+      'name': name,
+      'mobile': mobile,
+      'role': 'tenant',
+      'created_at': DateTime.now().toIso8601String(),
+    }).select('id').single();
+    return res['id'].toString();
+  }
+
+  /// Generate next agreement number for current month e.g., June2601
+  Future<String> generateNextAgreementNumber() async {
+    final now = DateTime.now();
+    final monthNames = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'June',
+      'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    final monthName = monthNames[now.month - 1];
+    final yearStr = (now.year % 100).toString().padLeft(2, '0');
+    
+    // Count agreements created this month
+    final startDate = DateTime(now.year, now.month, 1).toIso8601String();
+    final endDate = DateTime(now.year, now.month + 1, 1).toIso8601String();
+    
+    final data = await _client
+        .from('agreements')
+        .select('id')
+        .gte('created_at', startDate)
+        .lt('created_at', endDate);
+    
+    final count = (data as List).length + 1;
+    final sequenceStr = count.toString().padLeft(2, '0');
+    
+    return '$monthName$yearStr$sequenceStr';
+  }
+
+  /// Upload Draft PDF to Supabase and return the public URL
+  Future<String> uploadDraftPdf(String agreementNumber, Uint8List pdfBytes) async {
+    final fileName = 'draft_$agreementNumber.pdf';
+    final path = 'drafts/$fileName';
+    
+    // Upload or update the existing file
+    await _client.storage.from('agreements').uploadBinary(
+      path, 
+      pdfBytes,
+      fileOptions: const FileOptions(upsert: true, contentType: 'application/pdf'),
+    );
+    
+    // Get the public URL
+    final url = _client.storage.from('agreements').getPublicUrl(path);
+    
+    // Optional: save this URL to the agreements table
+    await _client.from('agreements').update({'pdf_url': url}).eq('agreement_number', agreementNumber);
+    
+    return url;
   }
 
   // --- Form Actions ---

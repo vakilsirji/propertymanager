@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../services/admin_service.dart';
+import 'admin_draft_details_screen.dart';
 
 /// Stub screen for Draft Agreements (admin).
 class AdminDraftScreen extends ConsumerWidget {
@@ -34,6 +35,15 @@ class AdminDraftScreen extends ConsumerWidget {
                 leading: const Icon(Icons.description),
                 title: Text('Agreement #${a.agreementNumber}'),
                 subtitle: Text('Property: ${a.propertyId}\nTenant: ${a.tenantId}'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AdminDraftDetailsScreen(agreement: a),
+                    ),
+                  );
+                },
               );
             },
           );
