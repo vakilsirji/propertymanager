@@ -51,6 +51,52 @@ class LeadDocument {
       );
 }
 
+/// Calculates age in completed years from a date of birth, as of today.
+int calculateAgeFromDob(DateTime dob) {
+  final today = DateTime.now();
+  int age = today.year - dob.year;
+  if (today.month < dob.month || (today.month == dob.month && today.day < dob.day)) {
+    age--;
+  }
+  return age < 0 ? 0 : age;
+}
+
+/// A reusable Owner or Witness record, searchable by name/Aadhaar/PAN so an
+/// executive never has to retype the same person across multiple agreements.
+/// (Tenants already have an equivalent via the `users` table.)
+class AgreementPersonRecord {
+  final String id;
+  final String role; // 'owner' or 'witness'
+  final String name;
+  final String address;
+  final String pincode;
+  final String pan;
+  final String aadhaar;
+  final DateTime? dob;
+
+  AgreementPersonRecord({
+    required this.id,
+    required this.role,
+    required this.name,
+    required this.address,
+    required this.pincode,
+    required this.pan,
+    required this.aadhaar,
+    this.dob,
+  });
+
+  factory AgreementPersonRecord.fromMap(Map<String, dynamic> map) => AgreementPersonRecord(
+        id: map['id'].toString(),
+        role: map['role'] as String,
+        name: map['name'] as String? ?? '',
+        address: map['address'] as String? ?? '',
+        pincode: map['pincode'] as String? ?? '',
+        pan: map['pan'] as String? ?? '',
+        aadhaar: map['aadhaar'] as String? ?? '',
+        dob: map['dob'] != null ? DateTime.tryParse(map['dob'] as String) : null,
+      );
+}
+
 class AgreementPerson {
   final String name;
   final String address;
