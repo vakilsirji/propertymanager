@@ -81,6 +81,7 @@ class AdminService {
     });
   }
 
+
   /// Fetch leads
   Future<List<Lead>> fetchLeads() async {
     final data = await _client.from('leads').select().order('created_at', ascending: false);
@@ -354,10 +355,16 @@ class AdminService {
   Future<void> assignVendor(String agreementId, String vendorId, String vendorName, DateTime visitDate) async {
     await _client.from('biometric_visits').insert({
       'agreement_id': agreementId,
+      'vendor_id': vendorId,
       'vendor_name': vendorName,
       'visit_date': visitDate.toIso8601String().split('T')[0],
       'status': 'Assigned',
     });
+  }
+
+  /// Manually trigger the generation of renewal leads
+  Future<void> triggerRenewalLeadGeneration() async {
+    await _client.rpc('generate_renewal_leads');
   }
 }
 

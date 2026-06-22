@@ -271,6 +271,7 @@ class Payment {
 class BiometricVisit {
   final String id;
   final String agreementId;
+  final String? vendorId;
   final String vendorName;
   final DateTime visitDate;
   final String status; // Assigned, Completed
@@ -280,6 +281,7 @@ class BiometricVisit {
   BiometricVisit({
     required this.id,
     required this.agreementId,
+    this.vendorId,
     required this.vendorName,
     required this.visitDate,
     required this.status,
@@ -290,6 +292,7 @@ class BiometricVisit {
   factory BiometricVisit.fromMap(Map<String, dynamic> map) => BiometricVisit(
         id: map['id'].toString(),
         agreementId: map['agreement_id'].toString(),
+        vendorId: map['vendor_id']?.toString(),
         vendorName: map['vendor_name'] as String,
         visitDate: DateTime.parse(map['visit_date'] as String),
         status: map['status'] as String,

@@ -16,8 +16,30 @@ class AdminRenewalScreen extends ConsumerWidget {
         backgroundColor: const Color(0xFF6A1B9A),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/admin/dashboard'),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.radar),
+            tooltip: 'Scan for Expiring Agreements',
+            onPressed: () async {
+              try {
+                await ref.read(adminServiceProvider).triggerRenewalLeadGeneration();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Scan complete. Renewals updated!')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e')),
+                  );
+                }
+              }
+            },
+          ),
+        ],
       ),
       body: renewalsAsyncValue.when(
         data: (renewals) {

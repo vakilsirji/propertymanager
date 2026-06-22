@@ -5,6 +5,7 @@ import '../screens/login_screen.dart';
 import '../screens/admin_dashboard.dart';
 import '../screens/tenant_dashboard.dart';
 import '../screens/owner_dashboard.dart';
+import '../screens/vendor_dashboard.dart';
 
 /// Separate file for the AuthWrapper used by routing.
 class AuthWrapper extends StatelessWidget {
@@ -32,6 +33,8 @@ class AuthWrapper extends StatelessWidget {
           return const AdminDashboard();
         } else if (role == 'tenant') {
           return const TenantDashboard();
+        } else if (role == 'vendor') {
+          return const VendorDashboard();
         } else {
           return const OwnerDashboard();
         }

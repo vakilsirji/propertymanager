@@ -50,7 +50,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/admin/agreement/new',
       name: 'adminCreateAgreement',
-      builder: (context, state) => const AdminCreateAgreementScreen(),
+      builder: (context, state) {
+        final Map<String, dynamic>? extra = state.extra as Map<String, dynamic>?;
+        return AdminCreateAgreementScreen(prefillLead: extra?['lead']);
+      },
     ),
     GoRoute(
       path: '/admin/payments',

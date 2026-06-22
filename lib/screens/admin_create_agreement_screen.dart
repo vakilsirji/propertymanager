@@ -6,7 +6,8 @@ import '../models/admin_models.dart';
 import '../models/models.dart';
 
 class AdminCreateAgreementScreen extends ConsumerStatefulWidget {
-  const AdminCreateAgreementScreen({Key? key}) : super(key: key);
+  final Lead? prefillLead;
+  const AdminCreateAgreementScreen({Key? key, this.prefillLead}) : super(key: key);
 
   @override
   ConsumerState<AdminCreateAgreementScreen> createState() =>
@@ -22,6 +23,50 @@ class _AdminCreateAgreementScreenState
   void initState() {
     super.initState();
     _fetchNextAgreementNumber();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.prefillLead != null) {
+        _promptForPrefillRole();
+      }
+    });
+  }
+
+  void _promptForPrefillRole() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Auto-Fill Lead Details'),
+          content: Text('Is ${widget.prefillLead!.clientName} the Owner or the Tenant?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _ownerName.text = widget.prefillLead!.clientName;
+                  _ownerAddress.text = widget.prefillLead!.propertyAddress;
+                });
+                Navigator.pop(context);
+              },
+              child: const Text('Owner'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _tenantName.text = widget.prefillLead!.clientName;
+                  _tenantAddress.text = widget.prefillLead!.propertyAddress;
+                });
+                Navigator.pop(context);
+              },
+              child: const Text('Tenant'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Skip', style: TextStyle(color: Colors.grey)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _fetchNextAgreementNumber() async {

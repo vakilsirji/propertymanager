@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import '../models/admin_models.dart';
@@ -15,11 +16,44 @@ class PdfService {
     final details = agreement.details;
     if (details == null) return Uint8List(0);
 
+    final ByteData imageBytes = await rootBundle.load('assets/logo.png');
+    final Uint8List logoUint8List = imageBytes.buffer.asUint8List();
+    final logoImage = pw.MemoryImage(logoUint8List);
+
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         build: (pw.Context context) {
           return [
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Image(logoImage, width: 80, height: 80),
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    pw.Text(
+                      'Vakil Sirji LegalTech Services',
+                      style: pw.TextStyle(
+                        fontSize: 18,
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfColors.blue900,
+                      ),
+                    ),
+                    pw.Text(
+                      'www.vakilsirji.in',
+                      style: const pw.TextStyle(
+                        fontSize: 12,
+                        color: PdfColors.blueAccent,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 10),
+            pw.Divider(thickness: 1, color: PdfColors.grey300),
+            pw.SizedBox(height: 20),
             pw.Center(
               child: pw.Text(
                 isFinal ? 'RENTAL AGREEMENT' : 'DRAFT RENTAL AGREEMENT',

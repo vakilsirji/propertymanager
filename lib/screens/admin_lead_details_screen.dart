@@ -40,24 +40,35 @@ class _AdminLeadDetailsScreenState extends ConsumerState<AdminLeadDetailsScreen>
   }
 
   Future<void> _uploadDoc(String docType) async {
-    final result = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: ['pdf', 'png', 'jpg', 'jpeg']);
-    if (result != null && result.files.single.bytes != null) {
-      setState(() => _isUploading = true);
-      try {
-        final fileName = '${docType}_${DateTime.now().millisecondsSinceEpoch}.${result.files.single.extension}';
-        await ref.read(adminServiceProvider).uploadLeadDocument(
-              widget.lead.id,
-              docType,
-              fileName,
-              result.files.single.bytes!,
-            );
-        await _fetchDocs();
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$docType uploaded successfully!')));
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error uploading: $e')));
-      } finally {
-        if (mounted) setState(() => _isUploading = false);
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.custom, 
+        allowedExtensions: ['pdf', 'png', 'jpg', 'jpeg'],
+        withData: true,
+      );
+      
+      if (result != null && result.files.single.bytes != null) {
+        setState(() => _isUploading = true);
+        try {
+          final fileName = '${docType}_${DateTime.now().millisecondsSinceEpoch}.${result.files.single.extension}';
+          await ref.read(adminServiceProvider).uploadLeadDocument(
+                widget.lead.id,
+                docType,
+                fileName,
+                result.files.single.bytes!,
+              );
+          await _fetchDocs();
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$docType uploaded successfully!')));
+        } catch (e) {
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error uploading: $e')));
+        } finally {
+          if (mounted) setState(() => _isUploading = false);
+        }
+      } else if (result != null) {
+         if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not read file data. Try another file.')));
       }
+    } catch (e) {
+       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('File picker error: $e')));
     }
   }
 
@@ -103,9 +114,12 @@ class _AdminLeadDetailsScreenState extends ConsumerState<AdminLeadDetailsScreen>
                         icon: const Icon(Icons.edit_document),
                         label: const Text('Draft Agreement'),
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.all(16)),
-                        onPressed: () {
-                          // TODO: Navigate to the Drafting Stepper Screen with prefilled details
-                          context.push('/admin/agreement/new');
+                        onPressed: () async {
+                          // Update lead status to drafted
+                          await ref.read(adminServiceProvider).updateLeadStatus(widget.lead.id, 'Drafted');
+                          if (context.mounted) {
+                            context.push('/admin/agreement/new', extra: {'lead': widget.lead});
+                          }
                         },
                       ),
                     )

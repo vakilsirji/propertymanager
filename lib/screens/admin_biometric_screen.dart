@@ -16,7 +16,7 @@ class AdminBiometricScreen extends ConsumerWidget {
         backgroundColor: const Color(0xFF6A1B9A),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/admin/dashboard'),
         ),
       ),
       body: visitsAsyncValue.when(

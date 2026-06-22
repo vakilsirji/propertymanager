@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../services/admin_service.dart';
 import '../models/models.dart'; // import the models for UserModel
 
@@ -14,6 +15,10 @@ class AdminCustomersScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Customers (Owners & Tenants)'),
         backgroundColor: const Color(0xFF6A1B9A),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/admin/dashboard'),
+        ),
       ),
       body: customersAsyncValue.when(
         data: (customers) {
