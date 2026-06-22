@@ -121,6 +121,54 @@ class _AdminCreateAgreementScreenState
     _ownerName.text = p.ownerName;
   }
 
+  /// Fills the Owner fields from a previously-saved AgreementPersonRecord.
+  void _applyOwnerRecord(AgreementPersonRecord r) {
+    setState(() {
+      _ownerName.text = r.name;
+      _ownerAddress.text = r.address;
+      _ownerPin.text = r.pincode;
+      _ownerPan.text = r.pan;
+      _ownerAadhaar.text = r.aadhaar;
+      if (r.dob != null) _ownerDob = r.dob!;
+    });
+  }
+
+  /// Fills Witness 1 fields from a previously-saved AgreementPersonRecord.
+  void _applyWitness1Record(AgreementPersonRecord r) {
+    setState(() {
+      _w1Name.text = r.name;
+      _w1Address.text = r.address;
+      _w1Aadhaar.text = r.aadhaar;
+      if (r.dob != null) _w1Dob = r.dob!;
+    });
+  }
+
+  /// Fills Witness 2 fields from a previously-saved AgreementPersonRecord.
+  void _applyWitness2Record(AgreementPersonRecord r) {
+    setState(() {
+      _w2Name.text = r.name;
+      _w2Address.text = r.address;
+      _w2Aadhaar.text = r.aadhaar;
+      if (r.dob != null) _w2Dob = r.dob!;
+    });
+  }
+
+  /// A type-ahead search box that looks up existing Owner/Witness people by
+  /// name, Aadhaar, or PAN and lets the executive tap a match to auto-fill
+  /// the form below — so a repeat owner/witness is never retyped twice.
+  Widget _buildPersonReuseSearch({
+    required String role,
+    required String hint,
+    required void Function(AgreementPersonRecord) onSelected,
+  }) {
+    return _PersonReuseSearchField(
+      role: role,
+      hint: hint,
+      onSelected: onSelected,
+      adminService: ref.read(adminServiceProvider),
+    );
+  }
+
   void _showAddPropertyDialog() {
     final addressCtrl = TextEditingController();
     final ownerCtrl = TextEditingController();
@@ -272,6 +320,43 @@ class _AdminCreateAgreementScreenState
             agreementNumber: _agreementNumController.text,
             details: details.toMap(),
           );
+
+      // Save Owner + both Witnesses to the reusable people list, so the next
+      // agreement involving the same person doesn't need retyping. This is
+      // best-effort — if it fails, the agreement itself is still saved.
+      final adminService = ref.read(adminServiceProvider);
+      try {
+        await adminService.saveAgreementPerson(
+          role: 'owner',
+          name: _ownerName.text,
+          address: _ownerAddress.text,
+          pincode: _ownerPin.text,
+          pan: _ownerPan.text,
+          aadhaar: _ownerAadhaar.text,
+          dob: _ownerDob,
+        );
+        await adminService.saveAgreementPerson(
+          role: 'witness',
+          name: _w1Name.text,
+          address: _w1Address.text,
+          pincode: '',
+          pan: '',
+          aadhaar: _w1Aadhaar.text,
+          dob: _w1Dob,
+        );
+        await adminService.saveAgreementPerson(
+          role: 'witness',
+          name: _w2Name.text,
+          address: _w2Address.text,
+          pincode: '',
+          pan: '',
+          aadhaar: _w2Aadhaar.text,
+          dob: _w2Dob,
+        );
+      } catch (e) {
+        debugPrint('Could not save reusable person records: $e');
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Draft Agreement Saved Successfully!')),
@@ -529,6 +614,11 @@ class _AdminCreateAgreementScreenState
                     key: _ownerFormKey,
                     child: Column(
                       children: [
+                        _buildPersonReuseSearch(
+                          role: 'owner',
+                          hint: 'Search existing Owner',
+                          onSelected: _applyOwnerRecord,
+                        ),
                         TextFormField(
                           controller: _ownerName,
                           decoration: const InputDecoration(
@@ -672,6 +762,11 @@ class _AdminCreateAgreementScreenState
                           'Witness 1',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
+                        _buildPersonReuseSearch(
+                          role: 'witness',
+                          hint: 'Search existing Witness',
+                          onSelected: _applyWitness1Record,
+                        ),
                         TextFormField(
                           controller: _w1Name,
                           decoration: const InputDecoration(labelText: 'Name'),
@@ -714,6 +809,11 @@ class _AdminCreateAgreementScreenState
                         const Text(
                           'Witness 2',
                           style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        _buildPersonReuseSearch(
+                          role: 'witness',
+                          hint: 'Search existing Witness',
+                          onSelected: _applyWitness2Record,
                         ),
                         TextFormField(
                           controller: _w2Name,
@@ -766,6 +866,131 @@ class _AdminCreateAgreementScreenState
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, s) => Center(child: Text('Error loading properties: $e')),
       ),
+    );
+  }
+}
+
+/// Debounced type-ahead search box for finding an existing Owner or Witness
+/// by name, Aadhaar, or PAN. Shows up to 8 matches in a dropdown-style list;
+/// tapping one calls [onSelected] so the caller can auto-fill its form.
+class _PersonReuseSearchField extends StatefulWidget {
+  final String role;
+  final String hint;
+  final void Function(AgreementPersonRecord) onSelected;
+  final AdminService adminService;
+
+  const _PersonReuseSearchField({
+    required this.role,
+    required this.hint,
+    required this.onSelected,
+    required this.adminService,
+  });
+
+  @override
+  State<_PersonReuseSearchField> createState() => _PersonReuseSearchFieldState();
+}
+
+class _PersonReuseSearchFieldState extends State<_PersonReuseSearchField> {
+  final _controller = TextEditingController();
+  List<AgreementPersonRecord> _results = [];
+  bool _isSearching = false;
+  bool _showResults = false;
+
+  void _onChanged(String query) async {
+    if (query.trim().length < 2) {
+      setState(() {
+        _results = [];
+        _showResults = false;
+      });
+      return;
+    }
+    setState(() => _isSearching = true);
+    try {
+      final results = await widget.adminService.searchAgreementPeople(widget.role, query.trim());
+      if (mounted) {
+        setState(() {
+          _results = results;
+          _showResults = true;
+          _isSearching = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isSearching = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: _controller,
+          decoration: InputDecoration(
+            labelText: widget.hint,
+            prefixIcon: const Icon(Icons.search),
+            suffixIcon: _isSearching
+                ? const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                  )
+                : null,
+            border: const OutlineInputBorder(),
+            helperText: 'Search by name, Aadhaar, or PAN to reuse a saved record',
+          ),
+          onChanged: _onChanged,
+        ),
+        if (_showResults && _results.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(top: 4),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            constraints: const BoxConstraints(maxHeight: 220),
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: _results.length,
+              separatorBuilder: (_, __) => const Divider(height: 1),
+              itemBuilder: (context, i) {
+                final r = _results[i];
+                return ListTile(
+                  dense: true,
+                  leading: const Icon(Icons.person_outline),
+                  title: Text(r.name),
+                  subtitle: Text(
+                    [
+                      if (r.aadhaar.isNotEmpty) 'Aadhaar: ${r.aadhaar}',
+                      if (r.pan.isNotEmpty) 'PAN: ${r.pan}',
+                    ].join('  •  '),
+                  ),
+                  onTap: () {
+                    widget.onSelected(r);
+                    setState(() {
+                      _controller.text = r.name;
+                      _showResults = false;
+                    });
+                  },
+                );
+              },
+            ),
+          )
+        else if (_showResults && _results.isEmpty && !_isSearching)
+          const Padding(
+            padding: EdgeInsets.only(top: 4),
+            child: Text(
+              'No match found — fill in the fields below to save a new record',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ),
+        const SizedBox(height: 12),
+      ],
     );
   }
 }
