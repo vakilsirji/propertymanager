@@ -110,6 +110,71 @@ class AdminService {
     });
   }
 
+  /// Search existing Owner/Witness people by name, Aadhaar, or PAN.
+  /// [role] is 'owner' or 'witness'. Returns up to 8 closest matches.
+  Future<List<AgreementPersonRecord>> searchAgreementPeople(String role, String query) async {
+    if (query.trim().isEmpty) return [];
+    final data = await _client
+        .from('agreement_people')
+        .select()
+        .eq('role', role)
+        .or('name.ilike.%$query%,aadhaar.ilike.%$query%,pan.ilike.%$query%')
+        .limit(8);
+    return (data as List<dynamic>)
+        .map((e) => AgreementPersonRecord.fromMap(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Save (or update, if already on file by Aadhaar/PAN) an Owner/Witness
+  /// person record so they can be found and reused on a future agreement.
+  Future<void> saveAgreementPerson({
+    required String role,
+    required String name,
+    required String address,
+    required String pincode,
+    required String pan,
+    required String aadhaar,
+    required DateTime? dob,
+  }) async {
+    final payload = {
+      'role': role,
+      'name': name,
+      'address': address,
+      'pincode': pincode,
+      'pan': pan,
+      'aadhaar': aadhaar,
+      'dob': dob?.toIso8601String().split('T')[0],
+    };
+
+    // Try to find an existing record for this person (match on Aadhaar first,
+    // then PAN) so repeat agreements update rather than duplicate them.
+    String? existingId;
+    if (aadhaar.trim().isNotEmpty) {
+      final match = await _client
+          .from('agreement_people')
+          .select('id')
+          .eq('role', role)
+          .eq('aadhaar', aadhaar)
+          .maybeSingle();
+      existingId = match?['id']?.toString();
+    }
+    if (existingId == null && pan.trim().isNotEmpty) {
+      final match = await _client
+          .from('agreement_people')
+          .select('id')
+          .eq('role', role)
+          .eq('pan', pan)
+          .maybeSingle();
+      existingId = match?['id']?.toString();
+    }
+
+    if (existingId != null) {
+      await _client.from('agreement_people').update(payload).eq('id', existingId);
+    } else {
+      await _client.from('agreement_people').insert(payload);
+    }
+  }
+
   /// Update the status of a lead.
   Future<void> updateLeadStatus(String leadId, String newStatus) async {
     await _client.from('leads').update({'status': newStatus}).eq('id', leadId);
