@@ -32,8 +32,15 @@ class AdminLeadsScreen extends ConsumerWidget {
             itemBuilder: (context, index) {
               final lead = leads[index];
               return ListTile(
-                title: Text(lead.clientName),
-                subtitle: Text('${lead.propertyAddress}\n${lead.phone}'),
+                title: Text('Tenant: ${lead.clientName}'),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Owner: ${lead.ownerName ?? 'Unknown Owner'} (${lead.ownerPhone ?? 'No phone'})', style: const TextStyle(fontWeight: FontWeight.w500)),
+                    Text('${lead.propertyAddress}\nTenant Phone: ${lead.phone}'),
+                  ],
+                ),
+                isThreeLine: true,
                 trailing: Text(lead.status, style: TextStyle(color: lead.status == 'New' ? Colors.orange : Colors.green)),
                 onTap: () {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => AdminLeadDetailsScreen(lead: lead)));

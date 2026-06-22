@@ -7,6 +7,8 @@ class Lead {
   final String propertyAddress;
   final String status;
   final DateTime createdAt;
+  final String? ownerName;
+  final String? ownerPhone;
 
   Lead({
     required this.id,
@@ -15,16 +17,47 @@ class Lead {
     required this.propertyAddress,
     required this.status,
     required this.createdAt,
+    this.ownerName,
+    this.ownerPhone,
   });
 
-  factory Lead.fromMap(Map<String, dynamic> map) => Lead(
-        id: map['id'].toString(),
-        clientName: map['client_name'] as String,
-        phone: map['phone'] as String,
-        propertyAddress: map['property_address'] as String,
-        status: map['status'] as String,
-        createdAt: DateTime.parse(map['created_at'] as String),
-      );
+  factory Lead.fromMap(Map<String, dynamic> map) {
+    // Check if we joined with the users table to get owner data
+    final ownerData = map['users'];
+    
+    return Lead(
+      id: map['id'].toString(),
+      clientName: map['client_name'] as String,
+      phone: map['phone'] as String,
+      propertyAddress: map['property_address'] as String,
+      status: map['status'] as String,
+      createdAt: DateTime.parse(map['created_at'] as String),
+      ownerName: ownerData != null ? ownerData['name'] as String? : null,
+      ownerPhone: ownerData != null ? ownerData['mobile'] as String? : null,
+    );
+  }
+
+  Lead copyWith({
+    String? id,
+    String? clientName,
+    String? phone,
+    String? propertyAddress,
+    String? status,
+    DateTime? createdAt,
+    String? ownerName,
+    String? ownerPhone,
+  }) {
+    return Lead(
+      id: id ?? this.id,
+      clientName: clientName ?? this.clientName,
+      phone: phone ?? this.phone,
+      propertyAddress: propertyAddress ?? this.propertyAddress,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      ownerName: ownerName ?? this.ownerName,
+      ownerPhone: ownerPhone ?? this.ownerPhone,
+    );
+  }
 }
 
 class LeadDocument {
@@ -343,5 +376,29 @@ class Property {
         address: map['address'] as String,
         ownerName: map['owner_name'] as String? ?? 'Unknown',
         status: map['status'] as String,
+      );
+}
+
+class AgreementTimelineEvent {
+  final String id;
+  final String agreementId;
+  final String statusStep;
+  final String? description;
+  final DateTime createdAt;
+
+  AgreementTimelineEvent({
+    required this.id,
+    required this.agreementId,
+    required this.statusStep,
+    this.description,
+    required this.createdAt,
+  });
+
+  factory AgreementTimelineEvent.fromMap(Map<String, dynamic> map) => AgreementTimelineEvent(
+        id: map['id'].toString(),
+        agreementId: map['agreement_id'].toString(),
+        statusStep: map['status_step'] as String,
+        description: map['description'] as String?,
+        createdAt: DateTime.parse(map['created_at'] as String),
       );
 }

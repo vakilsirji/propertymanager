@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../services/admin_service.dart';
-import 'admin_draft_details_screen.dart';
+import 'admin_agreement_workflow_screen.dart';
 
 /// Stub screen for Draft Agreements (admin).
 class AdminDraftScreen extends ConsumerWidget {
@@ -40,7 +40,7 @@ class AdminDraftScreen extends ConsumerWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => AdminDraftDetailsScreen(agreement: a),
+                      builder: (_) => AdminAgreementWorkflowScreen(agreement: a),
                     ),
                   );
                 },

@@ -5,6 +5,7 @@ import 'add_property_screen.dart';
 import 'view_properties_screen.dart';
 import 'rent_tracker_screen.dart';
 import 'agreements_screen.dart';
+import 'owner_create_lead_screen.dart';
 
 class OwnerDashboard extends StatelessWidget {
   const OwnerDashboard({super.key});
@@ -92,6 +93,9 @@ class OwnerDashboard extends StatelessWidget {
                         }),
                         _buildActionButton(context, 'Agreements', Icons.description, () {
                           Navigator.push(context, MaterialPageRoute(builder: (context) => const AgreementsScreen()));
+                        }),
+                        _buildActionButton(context, 'Request Agreement', Icons.handshake, () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const OwnerCreateLeadScreen()));
                         }),
                       ],
                     ),

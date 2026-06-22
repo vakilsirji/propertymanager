@@ -82,12 +82,37 @@ class AdminService {
   }
 
 
-  /// Fetch leads
+  /// Fetch all leads
   Future<List<Lead>> fetchLeads() async {
-    final data = await _client.from('leads').select().order('created_at', ascending: false);
-    return (data as List<dynamic>)
-        .map((e) => Lead.fromMap(e as Map<String, dynamic>))
-        .toList();
+    final response = await _client
+        .from('leads')
+        .select()
+        .order('created_at', ascending: false);
+    
+    final leads = (response as List).map((map) => Lead.fromMap(map)).toList();
+
+    // Enrich with Owner data based on property address
+    for (var i = 0; i < leads.length; i++) {
+       final lead = leads[i];
+       
+       try {
+         // Find property matching this address
+         final propRes = await _client.from('properties').select('owner_id').eq('address', lead.propertyAddress).maybeSingle();
+         if (propRes != null && propRes['owner_id'] != null) {
+            final userRes = await _client.from('users').select('name, mobile').eq('id', propRes['owner_id']).maybeSingle();
+            if (userRes != null) {
+                leads[i] = lead.copyWith(
+                   ownerName: userRes['name'],
+                   ownerPhone: userRes['mobile'],
+                );
+            }
+         }
+       } catch (e) {
+         // Silently fail for individual lead enrichment, just means owner info will be null
+       }
+    }
+    
+    return leads;
   }
 
   /// Fetch Lead Documents
@@ -179,6 +204,30 @@ class AdminService {
   /// Update the status of a lead.
   Future<void> updateLeadStatus(String leadId, String newStatus) async {
     await _client.from('leads').update({'status': newStatus}).eq('id', leadId);
+  }
+
+  /// Update the status of an agreement and record it in the timeline.
+  Future<void> updateAgreementStatusWithTimeline(String agreementId, String newStatus, {String? description}) async {
+    // 1. Update the agreement status
+    await _client.from('agreements').update({'status': newStatus}).eq('id', agreementId);
+    // 2. Insert into timeline
+    await _client.from('agreement_timeline').insert({
+      'agreement_id': agreementId,
+      'status_step': newStatus,
+      if (description != null) 'description': description,
+    });
+  }
+
+  /// Fetch the timeline events for a specific agreement
+  Future<List<AgreementTimelineEvent>> fetchAgreementTimeline(String agreementId) async {
+    final data = await _client
+        .from('agreement_timeline')
+        .select()
+        .eq('agreement_id', agreementId)
+        .order('created_at', ascending: true);
+    return (data as List<dynamic>)
+        .map((e) => AgreementTimelineEvent.fromMap(e as Map<String, dynamic>))
+        .toList();
   }
 
   /// Fetch all agreements.

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../services/admin_service.dart';
+import 'admin_agreement_workflow_screen.dart';
 
 /// Screen to display documents (e.g., agreement PDFs) for admins.
 class AdminDocumentsScreen extends ConsumerWidget {
@@ -43,6 +44,14 @@ class AdminDocumentsScreen extends ConsumerWidget {
                     );
                   },
                 ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AdminAgreementWorkflowScreen(agreement: agr),
+                    ),
+                  );
+                },
               );
             },
           );

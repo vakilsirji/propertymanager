@@ -95,10 +95,14 @@ class _AdminLeadDetailsScreenState extends ConsumerState<AdminLeadDetailsScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Client: ${widget.lead.clientName}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
+                  Text('Tenant: ${widget.lead.clientName}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
                   Text('Phone: ${widget.lead.phone}', style: const TextStyle(fontSize: 16)),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
+                  const Text('Owner Details:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey)),
+                  Text('Name: ${widget.lead.ownerName ?? 'Unknown Owner'}', style: const TextStyle(fontSize: 16)),
+                  Text('Phone: ${widget.lead.ownerPhone ?? 'N/A'}', style: const TextStyle(fontSize: 16)),
+                  const SizedBox(height: 16),
                   Text('Property: ${widget.lead.propertyAddress}', style: const TextStyle(fontSize: 16)),
                   const SizedBox(height: 24),
                   const Text('Current Status', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
