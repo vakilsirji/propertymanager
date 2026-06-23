@@ -15,7 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart' hide ChangeNotifierProvi
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
+  await dotenv.load(fileName: ".env");  // ← CHANGED from config.env to .env
   await Supabase.initialize(
     url: dotenv.env['SUPABASE_URL']!,
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
@@ -72,13 +72,11 @@ class AuthWrapper extends StatelessWidget {
         }
 
         if (auth.userProfile == null) {
-          // Profile is not yet loaded or doesn't exist
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
-        // Route based on role
         final role = auth.userProfile!.role;
         if (role == 'admin') {
           return const AdminDashboard();
