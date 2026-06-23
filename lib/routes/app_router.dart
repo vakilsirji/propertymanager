@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
+import 'package:property_manager/screens/admin_create_agreement_screen.dart';
 import '../screens/auth_wrapper.dart';
 import '../screens/admin_dashboard.dart';
 import '../screens/admin_customers_screen.dart';
