@@ -363,20 +363,173 @@ class Property {
   final String address;
   final String ownerName;
   final String status; // e.g., available, occupied
+  
+  // New fields needed for agreement creation - Government eRegistration fields
+  final String? district;
+  final String? taluka;
+  final String? village;
+  final String? areaType; // Urban/Rural
+  final String? localLimitName; // Municipality, Gram Panchayat, etc.
+  final String? propertyAttributeType; // Survey Number, City Survey, etc.
+  final String? propertyAttributeNumber;
+  final String? unitType; // Residential/Commercial/Industrial
+  final String? unitArea;
+  final String? unitAreaUnit; // sq ft, sq m, acres, etc.
+  
+  // Location details
+  final String? buildingName;
+  final String? flatNo;
+  final String? floorNo;
+  final String? road;
+  final String? location;
+  final String? useType; // Residential/Commercial
+  final String? galleryArea;
+  final String? parkingArea;
+  final String? policeStation;
+  final String? pincode;
 
   Property({
     required this.id,
     required this.address,
     required this.ownerName,
     required this.status,
+    this.district,
+    this.taluka,
+    this.village,
+    this.areaType,
+    this.localLimitName,
+    this.propertyAttributeType,
+    this.propertyAttributeNumber,
+    this.unitType,
+    this.unitArea,
+    this.unitAreaUnit,
+    this.buildingName,
+    this.flatNo,
+    this.floorNo,
+    this.road,
+    this.location,
+    this.useType,
+    this.galleryArea,
+    this.parkingArea,
+    this.policeStation,
+    this.pincode,
   });
 
   factory Property.fromMap(Map<String, dynamic> map) => Property(
-        id: map['id'].toString(),
-        address: map['address'] as String,
-        ownerName: map['owner_name'] as String? ?? 'Unknown',
-        status: map['status'] as String,
-      );
+    id: map['id'].toString(),
+    address: map['address'] as String? ?? '',
+    ownerName: map['owner_name'] as String? ?? 'Unknown',
+    status: map['status'] as String? ?? 'available',
+    // Map all the new fields from your database
+    district: map['district'] as String?,
+    taluka: map['taluka'] as String?,
+    village: map['village'] as String?,
+    areaType: map['area_type'] as String?,
+    localLimitName: map['local_limit_name'] as String?,
+    propertyAttributeType: map['property_attribute_type'] as String?,
+    propertyAttributeNumber: map['property_attribute_number'] as String?,
+    unitType: map['unit_type'] as String?,
+    unitArea: map['unit_area'] as String?,
+    unitAreaUnit: map['unit_area_unit'] as String?,
+    buildingName: map['building_name'] as String?,
+    flatNo: map['flat_no'] as String?,
+    floorNo: map['floor_no'] as String?,
+    road: map['road'] as String?,
+    location: map['location'] as String?,
+    useType: map['use_type'] as String?,
+    galleryArea: map['gallery_area'] as String?,
+    parkingArea: map['parking_area'] as String?,
+    policeStation: map['police_station'] as String?,
+    pincode: map['pincode'] as String?,
+  );
+
+  Property copyWith({
+    String? id,
+    String? address,
+    String? ownerName,
+    String? status,
+    String? district,
+    String? taluka,
+    String? village,
+    String? areaType,
+    String? localLimitName,
+    String? propertyAttributeType,
+    String? propertyAttributeNumber,
+    String? unitType,
+    String? unitArea,
+    String? unitAreaUnit,
+    String? buildingName,
+    String? flatNo,
+    String? floorNo,
+    String? road,
+    String? location,
+    String? useType,
+    String? galleryArea,
+    String? parkingArea,
+    String? policeStation,
+    String? pincode,
+  }) {
+    return Property(
+      id: id ?? this.id,
+      address: address ?? this.address,
+      ownerName: ownerName ?? this.ownerName,
+      status: status ?? this.status,
+      district: district ?? this.district,
+      taluka: taluka ?? this.taluka,
+      village: village ?? this.village,
+      areaType: areaType ?? this.areaType,
+      localLimitName: localLimitName ?? this.localLimitName,
+      propertyAttributeType: propertyAttributeType ?? this.propertyAttributeType,
+      propertyAttributeNumber: propertyAttributeNumber ?? this.propertyAttributeNumber,
+      unitType: unitType ?? this.unitType,
+      unitArea: unitArea ?? this.unitArea,
+      unitAreaUnit: unitAreaUnit ?? this.unitAreaUnit,
+      buildingName: buildingName ?? this.buildingName,
+      flatNo: flatNo ?? this.flatNo,
+      floorNo: floorNo ?? this.floorNo,
+      road: road ?? this.road,
+      location: location ?? this.location,
+      useType: useType ?? this.useType,
+      galleryArea: galleryArea ?? this.galleryArea,
+      parkingArea: parkingArea ?? this.parkingArea,
+      policeStation: policeStation ?? this.policeStation,
+      pincode: pincode ?? this.pincode,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'address': address,
+      'owner_name': ownerName,
+      'status': status,
+      'district': district,
+      'taluka': taluka,
+      'village': village,
+      'area_type': areaType,
+      'local_limit_name': localLimitName,
+      'property_attribute_type': propertyAttributeType,
+      'property_attribute_number': propertyAttributeNumber,
+      'unit_type': unitType,
+      'unit_area': unitArea,
+      'unit_area_unit': unitAreaUnit,
+      'building_name': buildingName,
+      'flat_no': flatNo,
+      'floor_no': floorNo,
+      'road': road,
+      'location': location,
+      'use_type': useType,
+      'gallery_area': galleryArea,
+      'parking_area': parkingArea,
+      'police_station': policeStation,
+      'pincode': pincode,
+    };
+  }
+
+  @override
+  String toString() {
+    return 'Property(id: $id, address: $address, ownerName: $ownerName, status: $status)';
+  }
 }
 
 class AgreementTimelineEvent {
