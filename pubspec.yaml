@@ -71,7 +71,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    - config.env
+    - .env
     - assets/logo.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
