@@ -144,6 +144,9 @@ class _AdminCreateAgreementScreenState
     return parts.join(', ');
   }
 
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  //  FIXED: UPDATED _saveOrSelectProperty WITH NAMED PARAMETERS
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Future<void> _saveOrSelectProperty() async {
     if (!_isCreatingNewProperty) return;
     if (!_propertyFormKey.currentState!.validate()) return;
@@ -151,29 +154,31 @@ class _AdminCreateAgreementScreenState
     setState(() => _isLoading = true);
     try {
       final id = await ref.read(adminServiceProvider).createProperty(
-            _composeAddressFromFields(),
-            _propertyOwnerNameFallback.text.isNotEmpty ? _propertyOwnerNameFallback.text : _ownerName.text,
-            district: _districtController.text,
-            taluka: _talukaController.text,
-            village: _villageController.text,
-            areaType: _areaType,
-            localLimitName: _localLimitController.text,
-            propertyAttributeType: _attributeType,
-            propertyAttributeNumber: _attributeNumberController.text,
-            unitType: _unitType,
-            unitArea: _unitAreaController.text,
-            unitAreaUnit: _unitAreaUnit,
-            buildingName: _buildingNameController.text,
-            flatNo: _flatNoController.text,
-            floorNo: _floorNoController.text,
-            road: _roadController.text,
-            location: _locationController.text,
-            useType: _useType,
-            galleryArea: _galleryAreaController.text,
-            parkingArea: _parkingAreaController.text,
-            policeStation: _policeStationController.text,
-            pincode: _pincodeController.text,
-          );
+        address: _composeAddressFromFields(),
+        ownerName: _propertyOwnerNameFallback.text.isNotEmpty 
+            ? _propertyOwnerNameFallback.text 
+            : _ownerName.text,
+        district: _districtController.text,
+        taluka: _talukaController.text,
+        village: _villageController.text,
+        areaType: _areaType,
+        localLimitName: _localLimitController.text,
+        propertyAttributeType: _attributeType,
+        propertyAttributeNumber: _attributeNumberController.text,
+        unitType: _unitType,
+        unitArea: _unitAreaController.text,
+        unitAreaUnit: _unitAreaUnit,
+        buildingName: _buildingNameController.text,
+        flatNo: _flatNoController.text,
+        floorNo: _floorNoController.text,
+        road: _roadController.text,
+        location: _locationController.text,
+        useType: _useType,
+        galleryArea: _galleryAreaController.text,
+        parkingArea: _parkingAreaController.text,
+        policeStation: _policeStationController.text,
+        pincode: _pincodeController.text,
+      );
       ref.invalidate(propertiesStreamProvider);
       setState(() {
         _selectedPropertyId = id;
