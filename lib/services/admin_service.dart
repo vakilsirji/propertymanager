@@ -81,7 +81,6 @@ class AdminService {
     });
   }
 
-
   /// Fetch all leads
   Future<List<Lead>> fetchLeads() async {
     final response = await _client
@@ -124,7 +123,6 @@ class AdminService {
   /// Upload Lead Document (Web compatible bytes)
   Future<void> uploadLeadDocument(String leadId, String docType, String fileName, List<int> bytes) async {
     final path = 'lead_$leadId/$fileName';
-    // Import dart:typed_data for Uint8List if necessary, or just use list
     await _client.storage.from('lead_documents').uploadBinary(path, Uint8List.fromList(bytes));
     
     final fileUrl = _client.storage.from('lead_documents').getPublicUrl(path);
@@ -254,13 +252,63 @@ class AdminService {
         .toList();
   }
 
-  /// Create a new Property inline
-  Future<String> createProperty(String address, String ownerName) async {
-    final res = await _client.from('properties').insert({
+  /// Create a new Property with all government eRegistration fields
+  /// 
+  /// This is the UPDATED method that accepts all the fields from the 
+  /// property form in the agreement creation screen.
+  Future<String> createProperty({
+    required String address,
+    required String ownerName,
+    String? district,
+    String? taluka,
+    String? village,
+    String? areaType,
+    String? localLimitName,
+    String? propertyAttributeType,
+    String? propertyAttributeNumber,
+    String? unitType,
+    String? unitArea,
+    String? unitAreaUnit,
+    String? buildingName,
+    String? flatNo,
+    String? floorNo,
+    String? road,
+    String? location,
+    String? useType,
+    String? galleryArea,
+    String? parkingArea,
+    String? policeStation,
+    String? pincode,
+  }) async {
+    final Map<String, dynamic> data = {
       'address': address,
       'owner_name': ownerName,
       'status': 'available',
-    }).select('id').single();
+    };
+
+    // Only add fields that have non-empty values
+    if (district != null && district.isNotEmpty) data['district'] = district;
+    if (taluka != null && taluka.isNotEmpty) data['taluka'] = taluka;
+    if (village != null && village.isNotEmpty) data['village'] = village;
+    if (areaType != null && areaType.isNotEmpty) data['area_type'] = areaType;
+    if (localLimitName != null && localLimitName.isNotEmpty) data['local_limit_name'] = localLimitName;
+    if (propertyAttributeType != null && propertyAttributeType.isNotEmpty) data['property_attribute_type'] = propertyAttributeType;
+    if (propertyAttributeNumber != null && propertyAttributeNumber.isNotEmpty) data['property_attribute_number'] = propertyAttributeNumber;
+    if (unitType != null && unitType.isNotEmpty) data['unit_type'] = unitType;
+    if (unitArea != null && unitArea.isNotEmpty) data['unit_area'] = unitArea;
+    if (unitAreaUnit != null && unitAreaUnit.isNotEmpty) data['unit_area_unit'] = unitAreaUnit;
+    if (buildingName != null && buildingName.isNotEmpty) data['building_name'] = buildingName;
+    if (flatNo != null && flatNo.isNotEmpty) data['flat_no'] = flatNo;
+    if (floorNo != null && floorNo.isNotEmpty) data['floor_no'] = floorNo;
+    if (road != null && road.isNotEmpty) data['road'] = road;
+    if (location != null && location.isNotEmpty) data['location'] = location;
+    if (useType != null && useType.isNotEmpty) data['use_type'] = useType;
+    if (galleryArea != null && galleryArea.isNotEmpty) data['gallery_area'] = galleryArea;
+    if (parkingArea != null && parkingArea.isNotEmpty) data['parking_area'] = parkingArea;
+    if (policeStation != null && policeStation.isNotEmpty) data['police_station'] = policeStation;
+    if (pincode != null && pincode.isNotEmpty) data['pincode'] = pincode;
+
+    final res = await _client.from('properties').insert(data).select('id').single();
     return res['id'].toString();
   }
 
@@ -416,4 +464,3 @@ class AdminService {
     await _client.rpc('generate_renewal_leads');
   }
 }
-
